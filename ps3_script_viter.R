@@ -285,9 +285,42 @@ gas_cv_fc <- can_gas |>
 gas_cv_fc |>
   accuracy(can_gas, measures = list(MAE = MAE, RMSE = RMSE))
 
+range(gas_cv_fc$Month)
 
+gas_cv_fc |>
+  accuracy(can_gas, measures = list(MAE = MAE, RMSE = RMSE))
 
+# The first forecast evaluated is in January of 1980, and the last forecast is in February 2005.
+# According to the measured metrics, the SNAIVE model forecasts more accurately. It has both a lower MAE and RMSE than the TSLM model.
 
+# 5.2
+
+errs <- gas_cv_fc |>
+  as_tibble() |>
+  left_join(as_tibble(can_gas) |> select(Month, actual = Volume),
+            by = "Month") |>
+  mutate(e = actual - .mean) |>
+  select(Month, .model, e) |>
+  pivot_wider(names_from = .model, values_from = e) |>
+  na.omit()
+
+forecast::dm.test(errs$snaive, errs$tslm, h = 1, power = 1)
+
+# The DM statistic is -31.278, and the p-value is 2.2e-16, meaning that we reject the null hypothesis of equal forecast accuracy at the 5% level.
+
+# 5.3
+
+gas_cv_rw <- can_gas |>
+  select(Month, Volume) |>
+  slide_tsibble(.size = 240, .step = 1) |>
+  model(snaive = SNAIVE(Volume),
+        tslm   = TSLM(log(Volume) ~ trend() + season())) |>
+  forecast(h = 1)
+
+gas_cv_rw |>
+  accuracy(can_gas, measures = list(MAE = MAE, RMSE = RMSE))
+
+# The TSLM model's accuracy changed significantly more than that of the SNAIVE model under the rolling window TS-CV. This likely occurs because the TSLM model re-evaluates its estimate given the updated information, so changing the data generation process more greatly impacts the TSLM model's accuracy than the SNAIVE model's accuracy.
 
 
 
