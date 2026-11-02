@@ -323,5 +323,3 @@ gas_cv_rw |>
 # The TSLM model's accuracy changed significantly more than that of the SNAIVE model under the rolling window TS-CV. This likely occurs because the TSLM model re-evaluates its estimate given the updated information, so changing the data generation process more greatly impacts the TSLM model's accuracy than the SNAIVE model's accuracy.
 
 
-
-
